@@ -39,6 +39,32 @@ export interface ListeningProgress {
   listenedAt: string;
 }
 
+export type ListRecency = "all" | "today" | "24h" | "week";
+export type ListDuration = "all" | "short" | "medium" | "long";
+export type ListSort = "newest" | "shortest";
+
+export interface MyListPreferences {
+  categories: NewsCategory[];
+  sources: string[];
+  recency: ListRecency;
+  duration: ListDuration;
+  unlistenedOnly: boolean;
+  sort: ListSort;
+  maxArticles: number | null;
+  updatedAt: string;
+}
+
+export const DEFAULT_MY_LIST_PREFERENCES: MyListPreferences = {
+  categories: [],
+  sources: [],
+  recency: "all",
+  duration: "all",
+  unlistenedOnly: false,
+  sort: "newest",
+  maxArticles: null,
+  updatedAt: new Date(0).toISOString(),
+};
+
 export const CATEGORY_LABELS: Record<NewsCategory, string> = {
   all: "Tümü",
   politics: "Siyaset",

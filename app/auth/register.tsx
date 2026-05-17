@@ -14,24 +14,34 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, FONTS, RADIUS } from "../../constants/theme";
 import { Button, IconButton } from "../../components/ui";
+import { useAuth } from "../../contexts/AuthProvider";
 
 type Field = "name" | "email" | "password";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { signUp } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<Field | null>(null);
 
   const handleRegister = async () => {
     if (!name || !email || !password) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMessage(null);
+    try {
+      await signUp(email.trim(), password, name.trim());
       router.back();
-    }, 1000);
+    } catch (e) {
+      setErrorMessage(
+        e instanceof Error ? e.message : "Kayıt olunamadı. Tekrar deneyin."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isValid =
@@ -125,6 +135,10 @@ export default function RegisterScreen() {
                   </Text>
                 )}
               </View>
+
+              {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
 
               <Button
                 label={isLoading ? "Kayıt yapılıyor..." : "Kayıt Ol"}
@@ -228,6 +242,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.destructive,
     marginTop: 6,
+  },
+  errorText: {
+    fontFamily: FONTS.sansMedium,
+    fontSize: 12,
+    color: COLORS.destructive,
+    marginBottom: 12,
+    textAlign: "center",
   },
   termsText: {
     fontFamily: FONTS.sans,

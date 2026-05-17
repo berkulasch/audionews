@@ -15,6 +15,8 @@ import {
   Lora_600SemiBold,
 } from "@expo-google-fonts/lora";
 import { COLORS } from "../constants/theme";
+import { AuthProvider } from "../contexts/AuthProvider";
+import { MyListPreferencesProvider } from "../contexts/MyListPreferencesProvider";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,28 +39,34 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <>
-      <StatusBar style="light" backgroundColor={COLORS.background} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: COLORS.background },
-        }}
-      >
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="article/[id]"
-          options={{ animation: "slide_from_right" }}
-        />
-        <Stack.Screen
-          name="auth/login"
-          options={{ animation: "slide_from_bottom" }}
-        />
-        <Stack.Screen
-          name="auth/register"
-          options={{ animation: "slide_from_bottom" }}
-        />
-      </Stack>
-    </>
+    <AuthProvider>
+      <MyListPreferencesProvider>
+        <StatusBar style="light" backgroundColor={COLORS.background} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: COLORS.background },
+          }}
+        >
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="article/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="mylist/edit"
+            options={{ animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
+            name="auth/login"
+            options={{ animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
+            name="auth/register"
+            options={{ animation: "slide_from_bottom" }}
+          />
+        </Stack>
+      </MyListPreferencesProvider>
+    </AuthProvider>
   );
 }

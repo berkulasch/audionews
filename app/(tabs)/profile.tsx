@@ -5,12 +5,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
+import { useState } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, FONTS, RADIUS } from "../../constants/theme";
 import { MiniPlayer } from "../../components/MiniPlayer";
 import { Button } from "../../components/ui";
+import { useAuth } from "../../contexts/AuthProvider";
+import { useMyListPreferences } from "../../hooks/useMyListPreferences";
+import { preferencesSummary } from "../../lib/filterArticles";
 
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -20,22 +25,31 @@ const LISTENING_STATS = [
   { label: "Bu Hafta", value: "8", unit: "haber" },
 ];
 
-const MENU_ITEMS: {
+interface MenuItem {
   icon: IconName;
   label: string;
-  count: number | null;
-}[] = [
-  { icon: "heart-outline", label: "Favorilerim", count: 12 },
-  { icon: "time-outline", label: "Dinleme Geçmişi", count: 24 },
-  { icon: "notifications-outline", label: "Bildirimler", count: null },
-  { icon: "settings-outline", label: "Ayarlar", count: null },
-  { icon: "newspaper-outline", label: "Haber Kaynakları", count: null },
-  { icon: "help-circle-outline", label: "Yardım & Destek", count: null },
-];
+  description?: string;
+  onPress?: () => void;
+}
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const isLoggedIn = false;
+  const { user, isAuthLoading, signOut } = useAuth();
+  const { prefs } = useMyListPreferences();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const isLoggedIn = !!user;
+
+  if (isAuthLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.centered}>
+          <ActivityIndicator color={COLORS.primary} />
+        </View>
+        <MiniPlayer />
+      </SafeAreaView>
+    );
+  }
 
   if (!isLoggedIn) {
     return (
@@ -70,6 +84,36 @@ export default function ProfileScreen() {
     );
   }
 
+  const displayName =
+    (user.user_metadata?.display_name as string | undefined) ??
+    user.email?.split("@")[0] ??
+    "Kullanıcı";
+  const email = user.email ?? "";
+  const initial = displayName.charAt(0).toUpperCase() || "?";
+
+  const menuItems: MenuItem[] = [
+    {
+      icon: "list-outline",
+      label: "Listem",
+      description: preferencesSummary(prefs),
+      onPress: () => router.push("/mylist/edit"),
+    },
+    { icon: "heart-outline", label: "Favorilerim" },
+    { icon: "time-outline", label: "Dinleme Geçmişi" },
+    { icon: "notifications-outline", label: "Bildirimler" },
+    { icon: "settings-outline", label: "Ayarlar" },
+    { icon: "help-circle-outline", label: "Yardım & Destek" },
+  ];
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -78,11 +122,11 @@ export default function ProfileScreen() {
       >
         <View style={styles.profileHeader}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>B</Text>
+            <Text style={styles.avatarText}>{initial}</Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>Berk Kullanıcı</Text>
-            <Text style={styles.profileEmail}>berk@example.com</Text>
+            <Text style={styles.profileName}>{displayName}</Text>
+            <Text style={styles.profileEmail}>{email}</Text>
           </View>
           <TouchableOpacity style={styles.editBtn} activeOpacity={0.8}>
             <Ionicons name="pencil" size={14} color={COLORS.primary} />
@@ -102,14 +146,16 @@ export default function ProfileScreen() {
 
         <Text style={styles.sectionTitle}>Hesabım</Text>
         <View style={styles.menuContainer}>
-          {MENU_ITEMS.map((item, index) => (
+          {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.label}
               style={[
                 styles.menuItem,
-                index < MENU_ITEMS.length - 1 && styles.menuItemBorder,
+                index < menuItems.length - 1 && styles.menuItemBorder,
               ]}
               activeOpacity={0.7}
+              onPress={item.onPress}
+              disabled={!item.onPress}
             >
               <View style={styles.menuIconWrap}>
                 <Ionicons
@@ -118,26 +164,41 @@ export default function ProfileScreen() {
                   color={COLORS.primary}
                 />
               </View>
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <View style={styles.menuRight}>
-                {item.count !== null && (
-                  <View style={styles.countBadge}>
-                    <Text style={styles.countText}>{item.count}</Text>
-                  </View>
-                )}
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color={COLORS.subtleForeground}
-                />
+              <View style={styles.menuTextWrap}>
+                <Text style={styles.menuLabel}>{item.label}</Text>
+                {item.description ? (
+                  <Text style={styles.menuDescription} numberOfLines={1}>
+                    {item.description}
+                  </Text>
+                ) : null}
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={COLORS.subtleForeground}
+              />
             </TouchableOpacity>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.8}>
-          <Ionicons name="log-out-outline" size={18} color={COLORS.destructive} />
-          <Text style={styles.logoutText}>Çıkış Yap</Text>
+        <TouchableOpacity
+          style={styles.logoutBtn}
+          activeOpacity={0.8}
+          onPress={handleSignOut}
+          disabled={isSigningOut}
+        >
+          {isSigningOut ? (
+            <ActivityIndicator size="small" color={COLORS.destructive} />
+          ) : (
+            <Ionicons
+              name="log-out-outline"
+              size={18}
+              color={COLORS.destructive}
+            />
+          )}
+          <Text style={styles.logoutText}>
+            {isSigningOut ? "Çıkış yapılıyor..." : "Çıkış Yap"}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -304,29 +365,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  menuLabel: {
+  menuTextWrap: {
     flex: 1,
+  },
+  menuLabel: {
     fontFamily: FONTS.sansMedium,
     fontSize: 14,
     color: COLORS.foreground,
   },
-  menuRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+  menuDescription: {
+    fontFamily: FONTS.sans,
+    fontSize: 12,
+    color: COLORS.mutedForeground,
+    marginTop: 2,
   },
-  countBadge: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    minWidth: 22,
+  centered: {
+    flex: 1,
     alignItems: "center",
-  },
-  countText: {
-    fontFamily: FONTS.sansBold,
-    fontSize: 11,
-    color: COLORS.primaryForeground,
+    justifyContent: "center",
   },
   logoutBtn: {
     flexDirection: "row",

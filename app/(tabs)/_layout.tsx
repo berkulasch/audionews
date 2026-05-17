@@ -55,6 +55,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="mylist"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              focused={focused}
+              icon={focused ? "list" : "list-outline"}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           tabBarIcon: ({ focused }) => (

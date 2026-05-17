@@ -14,13 +14,16 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, FONTS, RADIUS } from "../../constants/theme";
 import { Button, IconButton } from "../../components/ui";
+import { useAuth } from "../../contexts/AuthProvider";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<"email" | "password" | null>(
     null
   );
@@ -28,10 +31,17 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!email || !password) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMessage(null);
+    try {
+      await signIn(email.trim(), password);
       router.back();
-    }, 1000);
+    } catch (e) {
+      setErrorMessage(
+        e instanceof Error ? e.message : "Giriş yapılamadı. Tekrar deneyin."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -118,6 +128,10 @@ export default function LoginScreen() {
               <TouchableOpacity style={styles.forgotBtn} activeOpacity={0.7}>
                 <Text style={styles.forgotText}>Şifremi Unuttum</Text>
               </TouchableOpacity>
+
+              {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
 
               <Button
                 label={isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
@@ -260,6 +274,13 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     marginBottom: 18,
     paddingVertical: 4,
+  },
+  errorText: {
+    fontFamily: FONTS.sansMedium,
+    fontSize: 12,
+    color: COLORS.destructive,
+    marginBottom: 12,
+    textAlign: "center",
   },
   forgotText: {
     fontFamily: FONTS.sansSemiBold,
