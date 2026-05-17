@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useRouter } from "expo-router";
-import { COLORS, FONTS } from "../constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS, FONTS, RADIUS, SHADOW } from "../constants/theme";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 
 export function MiniPlayer() {
@@ -9,7 +10,7 @@ export function MiniPlayer() {
 
   if (!currentArticle) return null;
 
-  const progressPercent = Math.round(progress * 100);
+  const progressPercent = Math.max(0, Math.min(1, progress)) * 100;
 
   return (
     <TouchableOpacity
@@ -23,7 +24,9 @@ export function MiniPlayer() {
       <View style={styles.content}>
         <Image source={{ uri: currentArticle.imageUrl }} style={styles.thumbnail} />
         <View style={styles.info}>
-          <Text style={styles.source}>{currentArticle.source}</Text>
+          <Text style={styles.source} numberOfLines={1}>
+            {currentArticle.source}
+          </Text>
           <Text style={styles.title} numberOfLines={1}>
             {currentArticle.title}
           </Text>
@@ -35,8 +38,14 @@ export function MiniPlayer() {
           }}
           style={styles.playBtn}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.85}
         >
-          <Text style={styles.playIcon}>{isPlaying ? "⏸" : "▶"}</Text>
+          <Ionicons
+            name={isPlaying ? "pause" : "play"}
+            size={16}
+            color={COLORS.primaryForeground}
+            style={!isPlaying ? { marginLeft: 2 } : undefined}
+          />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -46,26 +55,24 @@ export function MiniPlayer() {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 80,
+    bottom: 86,
     left: 0,
     right: 0,
-    backgroundColor: COLORS.charcoal[900],
+    backgroundColor: COLORS.card,
     marginHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: RADIUS.lg,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOW.floating,
   },
   progressBar: {
-    height: 3,
-    backgroundColor: "rgba(255,255,255,0.15)",
+    height: 2,
+    backgroundColor: COLORS.muted,
   },
   progressFill: {
     height: "100%",
-    backgroundColor: COLORS.gold[500],
+    backgroundColor: COLORS.primary,
   },
   content: {
     flexDirection: "row",
@@ -76,34 +83,31 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: 44,
     height: 44,
-    borderRadius: 8,
+    borderRadius: 10,
+    backgroundColor: COLORS.muted,
   },
   info: {
     flex: 1,
   },
   source: {
+    fontFamily: FONTS.sansBold,
     fontSize: 10,
-    color: COLORS.gold[400],
-    fontWeight: "700",
+    color: COLORS.primary,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   title: {
-    fontSize: 13,
-    color: COLORS.white,
     fontFamily: FONTS.serif,
-    marginTop: 2,
+    fontSize: 14,
+    color: COLORS.foreground,
+    marginTop: 3,
   },
   playBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.gold[500],
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
-  },
-  playIcon: {
-    color: COLORS.white,
-    fontSize: 14,
   },
 });

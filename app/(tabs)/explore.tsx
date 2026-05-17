@@ -2,30 +2,38 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
 } from "react-native";
 import { useState, useMemo } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { ArticleCard } from "../../components/ArticleCard";
 import { MiniPlayer } from "../../components/MiniPlayer";
+import { SearchInput } from "../../components/ui";
 import { MOCK_ARTICLES } from "../../lib/mockData";
-import { NewsCategory, CATEGORY_LABELS, CATEGORY_ICONS } from "../../lib/types";
-import { COLORS, FONTS } from "../../constants/theme";
+import { NewsCategory, CATEGORY_LABELS } from "../../lib/types";
+import { COLORS, FONTS, RADIUS, CATEGORY_COLORS } from "../../constants/theme";
 
-const CATEGORIES: { id: NewsCategory; label: string; icon: string }[] = [
-  { id: "economy", label: "Ekonomi", icon: "📈" },
-  { id: "politics", label: "Siyaset", icon: "🏛️" },
-  { id: "sports", label: "Spor", icon: "⚽" },
-  { id: "technology", label: "Teknoloji", icon: "💻" },
-  { id: "world", label: "Dünya", icon: "🌍" },
-  { id: "culture", label: "Kültür", icon: "🎭" },
+type IconName = React.ComponentProps<typeof Ionicons>["name"];
+
+const CATEGORIES: {
+  id: NewsCategory;
+  label: string;
+  icon: IconName;
+}[] = [
+  { id: "economy", label: "Ekonomi", icon: "trending-up" },
+  { id: "politics", label: "Siyaset", icon: "business" },
+  { id: "sports", label: "Spor", icon: "football" },
+  { id: "technology", label: "Teknoloji", icon: "hardware-chip" },
+  { id: "world", label: "Dünya", icon: "earth" },
+  { id: "culture", label: "Kültür", icon: "color-palette" },
 ];
 
 export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<NewsCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<NewsCategory | null>(null);
 
   const filteredArticles = useMemo(() => {
     let result = MOCK_ARTICLES;
@@ -48,64 +56,64 @@ export default function ExploreScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 140 }}
+        contentContainerStyle={{ paddingBottom: 160 }}
       >
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Keşfet</Text>
+          <Text style={styles.subtitle}>
+            Konuya, kaynağa veya kategoriye göre dinle.
+          </Text>
         </View>
 
-        {/* Search */}
-        <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Haber, kaynak veya konu ara..."
-            placeholderTextColor={COLORS.muted}
+        <View style={styles.searchWrap}>
+          <SearchInput
             value={searchQuery}
             onChangeText={setSearchQuery}
+            placeholder="Haber, kaynak veya konu ara"
+            onClear={() => setSearchQuery("")}
           />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Text style={styles.clearBtn}>✕</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
-        {/* Category grid */}
         {!searchQuery && (
           <>
             <Text style={styles.sectionTitle}>Kategoriler</Text>
             <View style={styles.categoryGrid}>
-              {CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  onPress={() =>
-                    setSelectedCategory(
-                      selectedCategory === cat.id ? null : cat.id
-                    )
-                  }
-                  style={[
-                    styles.categoryCard,
-                    selectedCategory === cat.id && styles.categoryCardActive,
-                  ]}
-                >
-                  <Text style={styles.categoryIcon}>{cat.icon}</Text>
-                  <Text
+              {CATEGORIES.map((cat) => {
+                const accent = CATEGORY_COLORS[cat.id];
+                const isActive = selectedCategory === cat.id;
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    activeOpacity={0.88}
+                    onPress={() =>
+                      setSelectedCategory(isActive ? null : cat.id)
+                    }
                     style={[
-                      styles.categoryLabel,
-                      selectedCategory === cat.id && styles.categoryLabelActive,
+                      styles.categoryCard,
+                      isActive && { borderColor: accent },
                     ]}
                   >
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <View
+                      style={[styles.accentBar, { backgroundColor: accent }]}
+                    />
+                    <View style={styles.categoryCardContent}>
+                      <View
+                        style={[
+                          styles.categoryIconWrap,
+                          { backgroundColor: accent + "26" },
+                        ]}
+                      >
+                        <Ionicons name={cat.icon} size={20} color={accent} />
+                      </View>
+                      <Text style={styles.categoryLabel}>{cat.label}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </>
         )}
 
-        {/* Results */}
         <View style={styles.resultsHeader}>
           <Text style={styles.sectionTitle}>
             {selectedCategory
@@ -115,19 +123,31 @@ export default function ExploreScreen() {
               : "Tüm Haberler"}
           </Text>
           {selectedCategory && (
-            <TouchableOpacity onPress={() => setSelectedCategory(null)}>
-              <Text style={styles.clearFilter}>Temizle ✕</Text>
+            <TouchableOpacity
+              onPress={() => setSelectedCategory(null)}
+              style={styles.clearFilterBtn}
+            >
+              <Text style={styles.clearFilter}>Temizle</Text>
+              <Ionicons name="close" size={14} color={COLORS.primary} />
             </TouchableOpacity>
           )}
         </View>
 
         {filteredArticles.length > 0 ? (
           filteredArticles.map((article) => (
-            <ArticleCard key={article.id} article={article} variant="horizontal" />
+            <ArticleCard
+              key={article.id}
+              article={article}
+              variant="horizontal"
+            />
           ))
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🔍</Text>
+            <Ionicons
+              name="search-outline"
+              size={36}
+              color={COLORS.subtleForeground}
+            />
             <Text style={styles.emptyTitle}>Sonuç bulunamadı</Text>
             <Text style={styles.emptyText}>
               "{searchQuery}" ile eşleşen haber yok.
@@ -144,50 +164,34 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.cream[200],
+    backgroundColor: COLORS.background,
   },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   title: {
     fontFamily: FONTS.serif,
     fontSize: 28,
-    color: COLORS.charcoal[900],
+    color: COLORS.foreground,
   },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.cream[100],
-    marginHorizontal: 16,
+  subtitle: {
+    fontFamily: FONTS.sans,
+    fontSize: 13,
+    color: COLORS.mutedForeground,
+    marginTop: 4,
+  },
+  searchWrap: {
+    paddingHorizontal: 16,
     marginBottom: 8,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: COLORS.cream[300],
-  },
-  searchIcon: {
-    fontSize: 16,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.charcoal[900],
-  },
-  clearBtn: {
-    fontSize: 14,
-    color: COLORS.muted,
-    padding: 2,
   },
   sectionTitle: {
     fontFamily: FONTS.serif,
-    fontSize: 20,
-    color: COLORS.charcoal[900],
+    fontSize: 18,
+    color: COLORS.foreground,
     marginHorizontal: 16,
-    marginTop: 16,
+    marginTop: 24,
     marginBottom: 12,
   },
   categoryGrid: {
@@ -197,31 +201,37 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryCard: {
-    width: "30%",
-    backgroundColor: COLORS.cream[100],
-    borderRadius: 14,
-    padding: 16,
+    width: "47%",
+    marginHorizontal: "1.5%",
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.lg,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    flexDirection: "row",
+  },
+  accentBar: {
+    width: 4,
+  },
+  categoryCardContent: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  categoryIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: COLORS.cream[300],
-    gap: 6,
-  },
-  categoryCardActive: {
-    backgroundColor: COLORS.charcoal[900],
-    borderColor: COLORS.charcoal[900],
-  },
-  categoryIcon: {
-    fontSize: 24,
   },
   categoryLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.charcoal[700],
-    textAlign: "center",
-  },
-  categoryLabelActive: {
-    color: COLORS.white,
+    fontFamily: FONTS.sansSemiBold,
+    fontSize: 14,
+    color: COLORS.foreground,
   },
   resultsHeader: {
     flexDirection: "row",
@@ -229,29 +239,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingRight: 16,
   },
+  clearFilterBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
   clearFilter: {
+    fontFamily: FONTS.sansSemiBold,
     fontSize: 12,
-    color: COLORS.gold[500],
-    fontWeight: "600",
+    color: COLORS.primary,
   },
   emptyState: {
     alignItems: "center",
     paddingVertical: 60,
     paddingHorizontal: 40,
-  },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
+    gap: 10,
   },
   emptyTitle: {
     fontFamily: FONTS.serif,
-    fontSize: 20,
-    color: COLORS.charcoal[900],
-    marginBottom: 8,
+    fontSize: 18,
+    color: COLORS.foreground,
+    marginTop: 4,
   },
   emptyText: {
-    fontSize: 14,
-    color: COLORS.muted,
+    fontFamily: FONTS.sans,
+    fontSize: 13,
+    color: COLORS.subtleForeground,
     textAlign: "center",
   },
 });

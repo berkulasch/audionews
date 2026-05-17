@@ -1,21 +1,30 @@
 import { Tabs } from "expo-router";
-import { View, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../constants/theme";
 
-function TabIcon({ focused, icon, label }: { focused: boolean; icon: string; label: string }) {
+type IconName = React.ComponentProps<typeof Ionicons>["name"];
+
+function TabIcon({
+  focused,
+  icon,
+}: {
+  focused: boolean;
+  icon: IconName;
+}) {
   return (
-    <View className="items-center justify-center pt-1">
-      <Text style={{ fontSize: 20 }}>{icon}</Text>
-      <Text
-        style={{
-          fontSize: 10,
-          marginTop: 2,
-          color: focused ? COLORS.gold[500] : COLORS.muted,
-          fontWeight: focused ? "600" : "400",
-        }}
-      >
-        {label}
-      </Text>
+    <View style={styles.iconContainer}>
+      <Ionicons
+        name={icon}
+        size={22}
+        color={focused ? COLORS.primary : COLORS.subtleForeground}
+      />
+      <View
+        style={[
+          styles.indicator,
+          focused && { backgroundColor: COLORS.primary },
+        ]}
+      />
     </View>
   );
 }
@@ -26,21 +35,22 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: COLORS.cream[100],
-          borderTopColor: COLORS.cream[300],
+          backgroundColor: COLORS.sidebar,
+          borderTopColor: COLORS.border,
           borderTopWidth: 1,
-          height: 80,
-          paddingBottom: 16,
-          paddingTop: 4,
+          height: 78,
+          paddingBottom: 18,
+          paddingTop: 10,
         },
         tabBarShowLabel: false,
+        sceneStyle: { backgroundColor: COLORS.background },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="🏠" label="Ana Sayfa" />
+            <TabIcon focused={focused} icon={focused ? "home" : "home-outline"} />
           ),
         }}
       />
@@ -48,7 +58,10 @@ export default function TabLayout() {
         name="explore"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="🔍" label="Keşfet" />
+            <TabIcon
+              focused={focused}
+              icon={focused ? "compass" : "compass-outline"}
+            />
           ),
         }}
       />
@@ -56,10 +69,27 @@ export default function TabLayout() {
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="👤" label="Profil" />
+            <TabIcon
+              focused={focused}
+              icon={focused ? "person" : "person-outline"}
+            />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  indicator: {
+    width: 18,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: "transparent",
+  },
+});

@@ -1,7 +1,9 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { Article } from "../lib/types";
-import { COLORS, FONTS } from "../constants/theme";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { Article, CATEGORY_LABELS } from "../lib/types";
+import { COLORS, FONTS, RADIUS, SHADOW, CATEGORY_COLORS } from "../constants/theme";
 import { formatDuration, timeAgo } from "../lib/mockData";
 
 interface FeaturedCardProps {
@@ -10,6 +12,7 @@ interface FeaturedCardProps {
 
 export function FeaturedCard({ article }: FeaturedCardProps) {
   const router = useRouter();
+  const accent = CATEGORY_COLORS[article.category];
 
   return (
     <TouchableOpacity
@@ -18,19 +21,37 @@ export function FeaturedCard({ article }: FeaturedCardProps) {
       style={styles.container}
     >
       <Image source={{ uri: article.imageUrl }} style={styles.image} />
-      <View style={styles.overlay} />
+      <LinearGradient
+        colors={[
+          "rgba(18,36,46,0)",
+          "rgba(18,36,46,0.55)",
+          "rgba(18,36,46,0.95)",
+        ]}
+        locations={[0, 0.5, 1]}
+        style={styles.overlay}
+      />
       <View style={styles.content}>
-        <View style={styles.sourceBadge}>
+        <View style={styles.topRow}>
+          <View style={[styles.categoryChip, { borderColor: accent }]}>
+            <View style={[styles.categoryDot, { backgroundColor: accent }]} />
+            <Text style={styles.categoryText}>
+              {CATEGORY_LABELS[article.category]}
+            </Text>
+          </View>
           <Text style={styles.sourceText}>{article.source}</Text>
         </View>
+
         <Text style={styles.title} numberOfLines={3}>
           {article.title}
         </Text>
+
         <View style={styles.meta}>
           <View style={styles.playButton}>
-            <Text style={styles.playIcon}>▶</Text>
+            <Ionicons name="play" size={14} color={COLORS.primaryForeground} />
             {article.duration && (
-              <Text style={styles.duration}>{formatDuration(article.duration)}</Text>
+              <Text style={styles.duration}>
+                {formatDuration(article.duration)} dinle
+              </Text>
             )}
           </View>
           <Text style={styles.time}>{timeAgo(article.publishedAt)}</Text>
@@ -43,9 +64,13 @@ export function FeaturedCard({ article }: FeaturedCardProps) {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: RADIUS.xl,
     overflow: "hidden",
-    height: 260,
+    height: 280,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOW.card,
   },
   image: {
     width: "100%",
@@ -54,32 +79,53 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    borderRadius: 20,
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 18,
     justifyContent: "flex-end",
   },
-  sourceBadge: {
-    backgroundColor: COLORS.gold[500],
+  topRow: {
+    position: "absolute",
+    top: 16,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(18,36,46,0.6)",
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-    marginBottom: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.pill,
+    borderWidth: 1,
+  },
+  categoryDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  categoryText: {
+    fontFamily: FONTS.sansSemiBold,
+    fontSize: 11,
+    color: COLORS.foreground,
+    letterSpacing: 0.3,
   },
   sourceText: {
-    color: COLORS.white,
+    fontFamily: FONTS.sansBold,
     fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.5,
+    color: COLORS.primary,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
   title: {
     fontFamily: FONTS.serif,
     fontSize: 22,
-    color: COLORS.white,
+    color: COLORS.foreground,
     lineHeight: 30,
     marginBottom: 14,
   },
@@ -91,23 +137,20 @@ const styles = StyleSheet.create({
   playButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.gold[500],
-    paddingHorizontal: 14,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 30,
-    gap: 6,
-  },
-  playIcon: {
-    color: COLORS.white,
-    fontSize: 12,
+    borderRadius: RADIUS.pill,
+    gap: 8,
   },
   duration: {
-    color: COLORS.white,
-    fontSize: 13,
-    fontWeight: "600",
+    color: COLORS.primaryForeground,
+    fontSize: 12,
+    fontFamily: FONTS.sansSemiBold,
   },
   time: {
-    color: "rgba(255,255,255,0.75)",
+    color: COLORS.mutedForeground,
     fontSize: 12,
+    fontFamily: FONTS.sans,
   },
 });

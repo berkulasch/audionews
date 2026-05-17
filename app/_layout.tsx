@@ -3,13 +3,30 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
-import { useFonts, DMSerifDisplay_400Regular } from "@expo-google-fonts/dm-serif-display";
+import { useFonts } from "expo-font";
+import {
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from "@expo-google-fonts/poppins";
+import {
+  Lora_400Regular,
+  Lora_600SemiBold,
+} from "@expo-google-fonts/lora";
 import { COLORS } from "../constants/theme";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ DMSerifDisplay_400Regular });
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    Lora_400Regular,
+    Lora_600SemiBold,
+  });
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -21,14 +38,17 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="dark" backgroundColor={COLORS.cream[200]} />
-      <Stack screenOptions={{ headerShown: false }}>
+      <StatusBar style="light" backgroundColor={COLORS.background} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: COLORS.background },
+        }}
+      >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="article/[id]"
-          options={{
-            animation: "slide_from_right",
-          }}
+          options={{ animation: "slide_from_right" }}
         />
         <Stack.Screen
           name="auth/login"

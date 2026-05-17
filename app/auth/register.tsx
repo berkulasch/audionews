@@ -11,7 +11,11 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { COLORS, FONTS } from "../../constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS, FONTS, RADIUS } from "../../constants/theme";
+import { Button, IconButton } from "../../components/ui";
+
+type Field = "name" | "email" | "password";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -19,18 +23,19 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<Field | null>(null);
 
   const handleRegister = async () => {
     if (!name || !email || !password) return;
     setIsLoading(true);
-    // Firebase auth kayıt buraya gelecek
     setTimeout(() => {
       setIsLoading(false);
       router.back();
     }, 1000);
   };
 
-  const isValid = name.length > 1 && email.includes("@") && password.length >= 6;
+  const isValid =
+    name.length > 1 && email.includes("@") && password.length >= 6;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -43,13 +48,18 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-              <Text style={styles.closeIcon}>✕</Text>
-            </TouchableOpacity>
+            <IconButton
+              icon="close"
+              variant="filled"
+              size={36}
+              onPress={() => router.back()}
+            />
           </View>
 
           <View style={styles.content}>
-            <Text style={styles.logo}>📻</Text>
+            <View style={styles.logoWrap}>
+              <Ionicons name="headset" size={32} color={COLORS.primary} />
+            </View>
             <Text style={styles.title}>Hesap Oluştur</Text>
             <Text style={styles.subtitle}>
               Ücretsiz kayıt olun, haberleri sesli dinleyin.
@@ -59,40 +69,55 @@ export default function RegisterScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Ad Soyad</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    focusedField === "name" && styles.inputFocused,
+                  ]}
                   placeholder="Adınız Soyadınız"
-                  placeholderTextColor={COLORS.muted}
+                  placeholderTextColor={COLORS.subtleForeground}
                   value={name}
                   onChangeText={setName}
                   autoCapitalize="words"
                   autoComplete="name"
+                  onFocus={() => setFocusedField("name")}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>E-posta</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    focusedField === "email" && styles.inputFocused,
+                  ]}
                   placeholder="ornek@email.com"
-                  placeholderTextColor={COLORS.muted}
+                  placeholderTextColor={COLORS.subtleForeground}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
+                  onFocus={() => setFocusedField("email")}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Şifre</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    focusedField === "password" && styles.inputFocused,
+                  ]}
                   placeholder="En az 6 karakter"
-                  placeholderTextColor={COLORS.muted}
+                  placeholderTextColor={COLORS.subtleForeground}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                   autoComplete="new-password"
+                  onFocus={() => setFocusedField("password")}
+                  onBlur={() => setFocusedField(null)}
                 />
                 {password.length > 0 && password.length < 6 && (
                   <Text style={styles.validationText}>
@@ -101,15 +126,16 @@ export default function RegisterScreen() {
                 )}
               </View>
 
-              <TouchableOpacity
-                style={[styles.registerBtn, !isValid && styles.registerBtnDisabled]}
+              <Button
+                label={isLoading ? "Kayıt yapılıyor..." : "Kayıt Ol"}
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={isLoading}
+                disabled={!isValid}
                 onPress={handleRegister}
-                disabled={!isValid || isLoading}
-              >
-                <Text style={styles.registerBtnText}>
-                  {isLoading ? "Kayıt yapılıyor..." : "Kayıt Ol"}
-                </Text>
-              </TouchableOpacity>
+                style={{ marginTop: 8, marginBottom: 16 }}
+              />
 
               <Text style={styles.termsText}>
                 Kayıt olarak{" "}
@@ -136,97 +162,83 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.cream[200],
+    backgroundColor: COLORS.background,
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,
     alignItems: "flex-end",
   },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.cream[100],
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeIcon: {
-    fontSize: 14,
-    color: COLORS.charcoal[700],
-  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 16,
   },
-  logo: {
-    fontSize: 48,
-    marginBottom: 16,
+  logoWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18,
   },
   title: {
     fontFamily: FONTS.serif,
-    fontSize: 30,
-    color: COLORS.charcoal[900],
+    fontSize: 28,
+    color: COLORS.foreground,
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 15,
-    color: COLORS.muted,
+    fontFamily: FONTS.sans,
+    fontSize: 14,
+    color: COLORS.mutedForeground,
     marginBottom: 28,
   },
   form: {
     gap: 4,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   inputLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.charcoal[700],
+    fontFamily: FONTS.sansSemiBold,
+    fontSize: 12,
+    color: COLORS.mutedForeground,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: COLORS.cream[100],
+    backgroundColor: COLORS.input,
     borderWidth: 1,
-    borderColor: COLORS.cream[300],
-    borderRadius: 12,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    fontFamily: FONTS.sans,
     fontSize: 15,
-    color: COLORS.charcoal[900],
+    color: COLORS.foreground,
+  },
+  inputFocused: {
+    borderColor: COLORS.ring,
   },
   validationText: {
+    fontFamily: FONTS.sansMedium,
     fontSize: 12,
-    color: "#E53E3E",
+    color: COLORS.destructive,
     marginTop: 6,
   },
-  registerBtn: {
-    backgroundColor: COLORS.gold[500],
-    paddingVertical: 16,
-    borderRadius: 30,
-    alignItems: "center",
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  registerBtnDisabled: {
-    opacity: 0.5,
-  },
-  registerBtnText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "700",
-  },
   termsText: {
+    fontFamily: FONTS.sans,
     fontSize: 12,
-    color: COLORS.muted,
+    color: COLORS.mutedForeground,
     textAlign: "center",
     lineHeight: 18,
   },
   termsLink: {
-    color: COLORS.gold[500],
-    fontWeight: "600",
+    fontFamily: FONTS.sansSemiBold,
+    color: COLORS.primary,
   },
   loginRow: {
     flexDirection: "row",
@@ -235,12 +247,13 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   loginText: {
-    fontSize: 14,
-    color: COLORS.muted,
+    fontFamily: FONTS.sans,
+    fontSize: 13,
+    color: COLORS.mutedForeground,
   },
   loginLink: {
-    fontSize: 14,
-    color: COLORS.gold[500],
-    fontWeight: "700",
+    fontFamily: FONTS.sansBold,
+    fontSize: 13,
+    color: COLORS.primary,
   },
 });

@@ -11,7 +11,9 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { COLORS, FONTS } from "../../constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS, FONTS, RADIUS } from "../../constants/theme";
+import { Button, IconButton } from "../../components/ui";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -19,11 +21,13 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(
+    null
+  );
 
   const handleLogin = async () => {
     if (!email || !password) return;
     setIsLoading(true);
-    // Firebase auth buraya gelecek
     setTimeout(() => {
       setIsLoading(false);
       router.back();
@@ -40,96 +44,124 @@ export default function LoginScreen() {
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-              <Text style={styles.closeIcon}>✕</Text>
-            </TouchableOpacity>
+            <IconButton
+              icon="close"
+              variant="filled"
+              size={36}
+              onPress={() => router.back()}
+            />
           </View>
 
           <View style={styles.content}>
-            <Text style={styles.logo}>📻</Text>
+            <View style={styles.logoWrap}>
+              <Ionicons name="headset" size={32} color={COLORS.primary} />
+            </View>
             <Text style={styles.title}>Tekrar Hoş Geldiniz</Text>
             <Text style={styles.subtitle}>
               Hesabınıza giriş yaparak devam edin.
             </Text>
 
-            {/* Form */}
             <View style={styles.form}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>E-posta</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    focusedField === "email" && styles.inputFocused,
+                  ]}
                   placeholder="ornek@email.com"
-                  placeholderTextColor={COLORS.muted}
+                  placeholderTextColor={COLORS.subtleForeground}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
+                  onFocus={() => setFocusedField("email")}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Şifre</Text>
-                <View style={styles.passwordContainer}>
+                <View
+                  style={[
+                    styles.passwordContainer,
+                    focusedField === "password" && styles.inputFocused,
+                  ]}
+                >
                   <TextInput
-                    style={[styles.input, { flex: 1, borderWidth: 0 }]}
+                    style={styles.passwordInput}
                     placeholder="••••••••"
-                    placeholderTextColor={COLORS.muted}
+                    placeholderTextColor={COLORS.subtleForeground}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
                     autoComplete="password"
+                    onFocus={() => setFocusedField("password")}
+                    onBlur={() => setFocusedField(null)}
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword((v) => !v)}
                     style={styles.eyeBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Text style={{ fontSize: 18 }}>
-                      {showPassword ? "🙈" : "👁️"}
-                    </Text>
+                    <Ionicons
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={18}
+                      color={COLORS.subtleForeground}
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <TouchableOpacity style={styles.forgotBtn}>
+              <TouchableOpacity style={styles.forgotBtn} activeOpacity={0.7}>
                 <Text style={styles.forgotText}>Şifremi Unuttum</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.loginBtn, (!email || !password) && styles.loginBtnDisabled]}
+              <Button
+                label={isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={isLoading}
+                disabled={!email || !password}
                 onPress={handleLogin}
-                disabled={!email || !password || isLoading}
-              >
-                <Text style={styles.loginBtnText}>
-                  {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
-                </Text>
-              </TouchableOpacity>
+              />
             </View>
 
-            {/* Divider */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>veya</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Social */}
-            <TouchableOpacity style={styles.socialBtn}>
-              <Text style={styles.socialIcon}>🍎</Text>
+            <TouchableOpacity style={styles.socialBtn} activeOpacity={0.85}>
+              <Ionicons
+                name="logo-apple"
+                size={18}
+                color={COLORS.foreground}
+              />
               <Text style={styles.socialText}>Apple ile Devam Et</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.socialBtn, { marginTop: 10 }]}>
-              <Text style={styles.socialIcon}>🔵</Text>
+            <TouchableOpacity
+              style={[styles.socialBtn, { marginTop: 10 }]}
+              activeOpacity={0.85}
+            >
+              <Ionicons
+                name="logo-google"
+                size={18}
+                color={COLORS.foreground}
+              />
               <Text style={styles.socialText}>Google ile Devam Et</Text>
             </TouchableOpacity>
 
-            {/* Register link */}
             <View style={styles.registerRow}>
               <Text style={styles.registerText}>Hesabınız yok mu? </Text>
-              <TouchableOpacity onPress={() => router.replace("/auth/register")}>
+              <TouchableOpacity
+                onPress={() => router.replace("/auth/register")}
+              >
                 <Text style={styles.registerLink}>Kayıt Ol</Text>
               </TouchableOpacity>
             </View>
@@ -143,101 +175,96 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.cream[200],
+    backgroundColor: COLORS.background,
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,
     alignItems: "flex-end",
   },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.cream[100],
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeIcon: {
-    fontSize: 14,
-    color: COLORS.charcoal[700],
-  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 16,
   },
-  logo: {
-    fontSize: 48,
-    marginBottom: 16,
+  logoWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18,
   },
   title: {
     fontFamily: FONTS.serif,
-    fontSize: 30,
-    color: COLORS.charcoal[900],
+    fontSize: 28,
+    color: COLORS.foreground,
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 15,
-    color: COLORS.muted,
+    fontFamily: FONTS.sans,
+    fontSize: 14,
+    color: COLORS.mutedForeground,
     marginBottom: 28,
   },
   form: {
     gap: 4,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   inputLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.charcoal[700],
+    fontFamily: FONTS.sansSemiBold,
+    fontSize: 12,
+    color: COLORS.mutedForeground,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: COLORS.cream[100],
+    backgroundColor: COLORS.input,
     borderWidth: 1,
-    borderColor: COLORS.cream[300],
-    borderRadius: 12,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    fontFamily: FONTS.sans,
     fontSize: 15,
-    color: COLORS.charcoal[900],
+    color: COLORS.foreground,
+  },
+  inputFocused: {
+    borderColor: COLORS.ring,
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.cream[100],
+    backgroundColor: COLORS.input,
     borderWidth: 1,
-    borderColor: COLORS.cream[300],
-    borderRadius: 12,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
     paddingRight: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontFamily: FONTS.sans,
+    fontSize: 15,
+    color: COLORS.foreground,
   },
   eyeBtn: {
     padding: 4,
   },
   forgotBtn: {
     alignSelf: "flex-end",
-    marginBottom: 20,
+    marginBottom: 18,
+    paddingVertical: 4,
   },
   forgotText: {
-    fontSize: 13,
-    color: COLORS.gold[500],
-    fontWeight: "600",
-  },
-  loginBtn: {
-    backgroundColor: COLORS.charcoal[900],
-    paddingVertical: 16,
-    borderRadius: 30,
-    alignItems: "center",
-  },
-  loginBtnDisabled: {
-    opacity: 0.5,
-  },
-  loginBtnText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "700",
+    fontFamily: FONTS.sansSemiBold,
+    fontSize: 12,
+    color: COLORS.primary,
   },
   divider: {
     flexDirection: "row",
@@ -248,44 +275,43 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.cream[300],
+    backgroundColor: COLORS.border,
   },
   dividerText: {
-    fontSize: 13,
-    color: COLORS.muted,
+    fontFamily: FONTS.sansMedium,
+    fontSize: 12,
+    color: COLORS.subtleForeground,
   },
   socialBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.cream[100],
+    backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: COLORS.cream[300],
-    borderRadius: 30,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.pill,
     paddingVertical: 14,
     gap: 10,
   },
-  socialIcon: {
-    fontSize: 18,
-  },
   socialText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: COLORS.charcoal[900],
+    fontFamily: FONTS.sansSemiBold,
+    fontSize: 14,
+    color: COLORS.foreground,
   },
   registerRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 24,
+    marginTop: 28,
     marginBottom: 32,
   },
   registerText: {
-    fontSize: 14,
-    color: COLORS.muted,
+    fontFamily: FONTS.sans,
+    fontSize: 13,
+    color: COLORS.mutedForeground,
   },
   registerLink: {
-    fontSize: 14,
-    color: COLORS.gold[500],
-    fontWeight: "700",
+    fontFamily: FONTS.sansBold,
+    fontSize: 13,
+    color: COLORS.primary,
   },
 });
