@@ -1,0 +1,26 @@
+node_modules/
+.expo/
+dist/
+web-build/
+.env.local
+.env
+*.log
+
+# Firebase
+functions/lib/
+functions/node_modules/
+.firebase/
+firebase-debug.log
+
+# iOS/Android
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# macOS
+.DS_Store
